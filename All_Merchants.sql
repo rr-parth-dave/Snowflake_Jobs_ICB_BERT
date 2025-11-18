@@ -3,7 +3,7 @@ USE DATABASE EBATES_PROD;
 EXECUTE IMMEDIATE $$
 DECLARE
     -- CONFIGURATION
-    v_sample_size INT := 50;
+    v_sample_size INT := 1;
     v_temp_table STRING := 'TEMP.TEST_TABLE_JOB_ALL';
 
     -- INTERNAL VARS
@@ -14,7 +14,7 @@ DECLARE
 BEGIN
     v_run_ts := TO_CHAR(CURRENT_TIMESTAMP(), 'YYYYMMDD_HH24MISS');
 
-    -- 1. CREATE TABLE: We apply the renaming (AS) here
+    -- 1. CREATE TABLE
     v_prep_sql := '
     CREATE OR REPLACE TABLE ' || v_temp_table || ' AS
     WITH latest_per_ticket_keys AS (
@@ -48,7 +48,6 @@ BEGIN
         d."UPDATE_TIMESTAMP",
         d."MERCHANT_ID",
         d."RAW_DOM",
-        -- RENAMING HAPPENS HERE:
         d."GROUND_TRUTH_NETWORK_ORDER_NUMBER" AS ground_truth_order_id,
         d."GROUND_TRUTH_NETWORK_SUBTOTAL"     AS ground_truth_subtotal,
         d."SANITIZED_DOM"                     AS sanitized_text
@@ -66,7 +65,7 @@ BEGIN
 
     EXECUTE IMMEDIATE v_prep_sql;
 
-    -- 2. EXPORT: We select the NEW names here
+    -- 2. EXPORT
     v_copy_sql := '
     COPY INTO @DA_ASSET.DS_FILE_DROP_STAGE/ICB_BERT/run_ALL_' || v_run_ts || '/
     FROM (
@@ -75,7 +74,6 @@ BEGIN
                MERCHANT_ID,
                RAW_DOM,
                UPDATE_TIMESTAMP,
-               -- Select the new names
                ground_truth_order_id,
                ground_truth_subtotal,
                sanitized_text
@@ -87,8 +85,8 @@ BEGIN
         COMPRESSION = NONE
         FIELD_DELIMITER = '',''
         FIELD_OPTIONALLY_ENCLOSED_BY = ''"''
-        HEADER = TRUE  -- Added this so you can see the new names in the file
     )
+    HEADER = TRUE  -- FIXED: Moved outside the FILE_FORMAT parentheses
     MAX_FILE_SIZE = 100000000
     ';
 
