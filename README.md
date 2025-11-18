@@ -1,20 +1,14 @@
-# Snowflake_Jobs_ICB_BERT
+# ❄️ Snowflake Data Sampling & Export
 
-Snowflake jobs that export the latest, high-quality DOM samples for the ICB-BERT model, partitioned by merchant and timestamp.
+Automated SQL scripts to filter, sample, and export **ICB-BERT OCP Dataset** records to the Data Science stage.
 
-## Jobs
+## ⚡ Quick Start
+These scripts use **Anonymous Blocks**. Just copy, paste into a Snowflake Worksheet, and run.
 
-- **All merchants**  
-  - Top 50 latest rows per merchant  
-  - Output: `@DA_ASSET.DS_FILE_DROP_STAGE/ICB_BERT_ALL/run_<timestamp>/`
+* **Option A:** Exports samples for **ALL** merchants.
+* **Option B:** Exports samples for a **specific list** of merchants.
 
-- **Selected merchants**  
-  - Top 10 latest rows per provided merchants (configurable)  
-  - Output: `@DA_ASSET.DS_FILE_DROP_STAGE/ICB_BERT/run_<timestamp>/`
-
-## Usage
-
-```sql
-CALL SP_ICB_BERT_EXPORT_ALL_MERCHANTS();
-CALL SP_ICB_BERT_EXPORT_SELECTED_MERCHANTS('5246,8333,...', 10);
-SHOW TASKS LIKE '%ICB_BERT%';
+> **Note:** Columns are automatically renamed during export:
+> `GROUND_TRUTH_NETWORK_ORDER_NUMBER` → `ground_truth_order_id`
+> `GROUND_TRUTH_NETWORK_SUBTOTAL` → `ground_truth_subtotal`
+> `SANITIZED_DOM` → `sanitized_text`
